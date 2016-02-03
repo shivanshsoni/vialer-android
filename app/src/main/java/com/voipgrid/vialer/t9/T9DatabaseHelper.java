@@ -100,6 +100,12 @@ public class T9DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + Tables.T9_CONTACT);
     }
 
+    private void analyzeDB(SQLiteDatabase db) {
+        db.execSQL("ANALYZE " + Tables.T9_CONTACT);
+        db.execSQL("ANALYZE t9_query_index");
+        db.execSQL("ANALYZE t9_contact_id_index");
+    }
+
 //    /**
 //     * Removes rows in the smartdial database that matches the contacts that have been deleted
 //     * by other apps since last update.
@@ -135,6 +141,7 @@ public class T9DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         insertDisplayNameQuery(db, contactId, displayName);
         insertPhoneNumberQueries(db, contactId, phoneNumbers);
+        analyzeDB(db);
         db.close();
     }
 

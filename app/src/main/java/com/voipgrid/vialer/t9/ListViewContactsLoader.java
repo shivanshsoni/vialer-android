@@ -185,7 +185,7 @@ public class ListViewContactsLoader extends AsyncTask<CharSequence, Void, Cursor
                 },
                 Phone.CONTACT_ID + " IN " + "(" + TextUtils.join(", ", t9Database.getT9ContactIdMatches(searchNumber).toArray()) + ")",
                 null,
-                Data.
+                Phone.DISPLAY_NAME_PRIMARY + " ASC"
         );
         // Maybe?
 //        Cursor dataCursor = mContentResolver.query(

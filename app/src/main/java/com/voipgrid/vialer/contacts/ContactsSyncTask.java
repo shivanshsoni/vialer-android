@@ -16,9 +16,6 @@ import java.util.List;
  */
 public class ContactsSyncTask {
 
-    private static final String LOG_TAG = ContactsManager.class.getName();
-    private static final boolean DEBUG = true;
-
     private Context mContext;
 
     /**
@@ -90,20 +87,10 @@ public class ContactsSyncTask {
         // Gives you the list of contacts who have phone numbers.
         Cursor cursor = queryAllContacts();
 
-        ArrayList<Long> debugList;
-
-        if (DEBUG) {
-            debugList = new ArrayList<>();
-        }
-
         while (cursor.moveToNext()) {
             long contactId = cursor.getLong(cursor.getColumnIndex(ContactsContract.Contacts._ID));
             String name = getColumnFromCursor(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
                     cursor);
-
-            if (DEBUG) {
-                debugList.add(contactId);
-            }
 
             Cursor phones = queryAllPhoneNumbers(Long.toString(contactId));
 
@@ -140,12 +127,6 @@ public class ContactsSyncTask {
                 continue;
             }
             ContactsManager.syncContact(mContext, contactId, name, phoneNumbers);
-        }
-
-        if (DEBUG) {
-            if (new HashSet<Long>(debugList).size() < debugList.size()) {
-                Log.e(LOG_TAG, "DUPLICATE CONTACTS SYNCED");
-            }
         }
         cursor.close();
     }
