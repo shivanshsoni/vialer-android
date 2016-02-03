@@ -10,9 +10,21 @@ import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Data;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
+import android.util.Log;
 import android.widget.SimpleCursorAdapter;
 
 import com.voipgrid.vialer.R;
+import com.voipgrid.vialer.api.models.SystemUser;
+
+import org.pjsip.pjsua2.StreamInfo;
+import org.w3c.dom.Text;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Comparator;
+
+import javax.sql.CommonDataSource;
 
 /**
  * Created by karstenwestra on 23/10/15.
@@ -115,15 +127,26 @@ public class ListViewContactsLoader extends AsyncTask<CharSequence, Void, Cursor
         if (mMatrixCursor == null) {
             mMatrixCursor = new MatrixCursor(new String[] {"_id", "name", "photo", "number"});
         }
+        // GOOD
         for (boolean ok = cursor.moveToFirst(); ok; ok = cursor.moveToNext()) {
-            long contactId = cursor.getInt(cursor.getColumnIndex(Data.CONTACT_ID));
+            long contactId = cursor.getInt(cursor.getColumnIndex(Phone.CONTACT_ID));
             mMatrixCursor.addRow(new Object[]{
                     Long.toString(contactId),
-                    cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME_PRIMARY)),
+                    cursor.getString(cursor.getColumnIndex(Phone.DISPLAY_NAME_PRIMARY)),
                     ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId),
-                    cursor.getString(cursor.getColumnIndex(Phone.DATA3))
+                    cursor.getString(cursor.getColumnIndex(Phone.NUMBER))
             });
         }
+        // OLD
+//        for (boolean ok = cursor.moveToFirst(); ok; ok = cursor.moveToNext()) {
+//            long contactId = cursor.getInt(cursor.getColumnIndex(Data.CONTACT_ID));
+//            mMatrixCursor.addRow(new Object[]{
+//                    Long.toString(contactId),
+//                    cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME_PRIMARY)),
+//                    ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId),
+//                    cursor.getString(cursor.getColumnIndex(Phone.DATA3))
+//            });
+//        }
     }
 
     /**
@@ -143,28 +166,55 @@ public class ListViewContactsLoader extends AsyncTask<CharSequence, Void, Cursor
         // We want to strip the leading zero because we are searching normalized numbers
         // (+XX625874469). The leading zero would lead to 0 matches.
         if (searchNumber.length() > 0){
-            // LIMIT 20 because we are t9 searching on the number.
-            sortOrder = sortOrder + " LIMIT 20";
             if (searchNumber.charAt(0) == '0'){
                 searchNumber = searchNumber.substring(1);
             }
         }
 
-        // Query for all ContactsContract.Data entries with mimetype phone_v2
-        // and <app_name> typed data .
+        long start = System.currentTimeMillis();
+
+        T9DatabaseHelper t9Database = new T9DatabaseHelper(mContext);
+        // GOOD
         Cursor dataCursor = mContentResolver.query(
-                Data.CONTENT_URI,                                                    // URI
+                Phone.CONTENT_URI,
+
                 new String[] {
-                        Data.CONTACT_ID,
-                        Data.DISPLAY_NAME_PRIMARY,
-                        Phone.DATA3
-                },                                                                   // PROJECTION
-                getSelectionQueryString(),                                           // SELECTION
-                getSelectionArguments(searchStringBuilder.toString(), searchNumber), // WHERE args
-                sortOrder                                                            // SORT ORDER
+                        Phone.CONTACT_ID,
+                        Phone.DISPLAY_NAME_PRIMARY,
+                        Phone.NUMBER,
+                },
+                Phone.CONTACT_ID + " IN " + "(" + TextUtils.join(", ", t9Database.getT9ContactIdMatches(searchNumber).toArray()) + ")",
+                null,
+                Data.
         );
+        // Maybe?
+//        Cursor dataCursor = mContentResolver.query(
+//                Data.CONTENT_URI,
+//
+//                new String[] {
+//                        Data.CONTACT_ID,
+//                        Data.DISPLAY_NAME_PRIMARY,
+//                        Phone.DATA3
+//                },
+//                Data.CONTACT_ID + " IN " + "(" + TextUtils.join(", ", t9Database.getT9ContactIdMatches(searchNumber).toArray()) + ")" + " and " + Data.MIMETYPE + " = '" + mContext.getString(R.string.profile_mimetype) + "' AND " + Phone.HAS_PHONE_NUMBER + " = 1",
+//                null,
+//                null
+//        );
+
+        long end = System.currentTimeMillis();
+
+        Log.w("TIMER", "Query took: " + Long.toString(end - start) + " ms");
         // Dynamically populate a matrix cursor for use in t9 search list presentation.
+
+
+        start = System.currentTimeMillis();
+
         populateCursorWithCursor(dataCursor);
+
+        end = System.currentTimeMillis();
+
+        Log.w("TIMER", "Cursor population took: " + Long.toString(end - start) + " ms");
+
         assert dataCursor != null; // properly clean up the search process.
         dataCursor.close();
         return mMatrixCursor;

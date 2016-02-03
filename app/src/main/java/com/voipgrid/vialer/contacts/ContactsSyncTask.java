@@ -4,8 +4,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -13,6 +15,9 @@ import java.util.List;
  * Class acting as a layer between the syncadapter and the contactsmanager.
  */
 public class ContactsSyncTask {
+
+    private static final String LOG_TAG = ContactsManager.class.getName();
+    private static final boolean DEBUG = true;
 
     private Context mContext;
 
@@ -85,12 +90,22 @@ public class ContactsSyncTask {
         // Gives you the list of contacts who have phone numbers.
         Cursor cursor = queryAllContacts();
 
+        ArrayList<Long> debugList;
+
+        if (DEBUG) {
+            debugList = new ArrayList<>();
+        }
+
         while (cursor.moveToNext()) {
-            String contactId = getColumnFromCursor(ContactsContract.Contacts._ID, cursor);
+            long contactId = cursor.getLong(cursor.getColumnIndex(ContactsContract.Contacts._ID));
             String name = getColumnFromCursor(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
                     cursor);
 
-            Cursor phones = queryAllPhoneNumbers(contactId);
+            if (DEBUG) {
+                debugList.add(contactId);
+            }
+
+            Cursor phones = queryAllPhoneNumbers(Long.toString(contactId));
 
             if (phones.getCount() <= 0) {
                 // Close cursor before continue.
@@ -124,7 +139,13 @@ public class ContactsSyncTask {
             if (phoneNumbers.size() <= 0){
                 continue;
             }
-            ContactsManager.syncContact(mContext, name, phoneNumbers);
+            ContactsManager.syncContact(mContext, contactId, name, phoneNumbers);
+        }
+
+        if (DEBUG) {
+            if (new HashSet<Long>(debugList).size() < debugList.size()) {
+                Log.e(LOG_TAG, "DUPLICATE CONTACTS SYNCED");
+            }
         }
         cursor.close();
     }

@@ -1,16 +1,13 @@
 package com.voipgrid.vialer.t9;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,12 +96,7 @@ public class T9DatabaseHelper extends SQLiteOpenHelper {
                 Tables.T9_CONTACT + " (" + T9ContactColumns.CONTACT_ID + ");");
     }
 
-    private void setLastUpdatedTime(SQLiteDatabase db) {
-        // TODO
-//        setProperty(db, );
-    }
-
-    public void dropTables(SQLiteDatabase db) {
+    private void dropTables(SQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS " + Tables.T9_CONTACT);
     }
 
@@ -139,123 +131,65 @@ public class T9DatabaseHelper extends SQLiteOpenHelper {
 //        }
 //    }
 
-//    private void removeUpdatedContacts(SQLiteDatabase db, Cursor updatedContactCursor) {
-//        db.beginTransaction();
-//        try {
-//            while (updatedContactCursor.moveToNext()) {
-//                final Long contactId = updatedContactCursor.getLong(PhoneQuery.PHONE_CONTACT_ID);
-//                db.delete(Tables.T9_CONTACT, T9ContactColumns.CONTACT_ID + "=" +
-//                        contactId, null);
-//            }
-//            db.setTransactionSuccessful();
-//        } finally {
-//            db.endTransaction();
-//        }
-//    }
+    public void insertT9Contact(long contactId, String displayName, List<String> phoneNumbers) {
+        SQLiteDatabase db = getReadableDatabase();
+        insertDisplayNameQuery(db, contactId, displayName);
+        insertPhoneNumberQueries(db, contactId, phoneNumbers);
+        db.close();
+    }
 
-//    /**
-//     * Inserts updated contacts as rows to the smartdial table.
-//     *
-//     * @param db Database pointer to the smartdial database.
-//     * @param updatedContactCursor Cursor pointing to the list of recently updated contacts.
-//     * @param currentMillis Current time to be recorded in the smartdial table as update timestamp.
-//     */
-//    protected void insertUpdatedContactsAndNumberPrefix(SQLiteDatabase db,
-//                                                        Cursor updatedContactCursor, Long currentMillis) {
-//        db.beginTransaction();
-//        try {
-//            final String numberSqlInsert = "INSERT INTO " + Tables.PREFIX_TABLE + " (" +
-//                    PrefixColumns.CONTACT_ID + ", " +
-//                    PrefixColumns.PREFIX  + ") " +
-//                    " VALUES (?, ?)";
-//            final SQLiteStatement numberInsert = db.compileStatement(numberSqlInsert);
-//            updatedContactCursor.moveToPosition(-1);
-//            while (updatedContactCursor.moveToNext()) {
-//                // Handle string columns which can possibly be null first. In the case of certain
-//                // null columns (due to malformed rows possibly inserted by third-party apps
-//                // or sync adapters), skip the phone number row.
-//                final String number = updatedContactCursor.getString(PhoneQuery.PHONE_NUMBER);
-//                if (TextUtils.isEmpty(number)) {
-//                    continue;
-//                } else {
-//                    insert.bindString(2, number);
-//                }
-//                final String lookupKey = updatedContactCursor.getString(
-//                        PhoneQuery.PHONE_LOOKUP_KEY);
-//                if (TextUtils.isEmpty(lookupKey)) {
-//                    continue;
-//                } else {
-//                    insert.bindString(4, lookupKey);
-//                }
-//                final String displayName = updatedContactCursor.getString(
-//                        PhoneQuery.PHONE_DISPLAY_NAME);
-//                if (displayName == null) {
-//                    insert.bindString(5, mContext.getResources().getString(R.string.missing_name));
-//                } else {
-//                    insert.bindString(5, displayName);
-//                }
-//                insert.bindLong(1, updatedContactCursor.getLong(PhoneQuery.PHONE_ID));
-//                insert.bindLong(3, updatedContactCursor.getLong(PhoneQuery.PHONE_CONTACT_ID));
-//                insert.bindLong(6, updatedContactCursor.getLong(PhoneQuery.PHONE_PHOTO_ID));
-//                insert.bindLong(7, updatedContactCursor.getLong(PhoneQuery.PHONE_LAST_TIME_USED));
-//                insert.bindLong(8, updatedContactCursor.getInt(PhoneQuery.PHONE_TIMES_USED));
-//                insert.bindLong(9, updatedContactCursor.getInt(PhoneQuery.PHONE_STARRED));
-//                insert.bindLong(10, updatedContactCursor.getInt(PhoneQuery.PHONE_IS_SUPER_PRIMARY));
-//                insert.bindLong(11, updatedContactCursor.getInt(PhoneQuery.PHONE_IN_VISIBLE_GROUP));
-//                insert.bindLong(12, updatedContactCursor.getInt(PhoneQuery.PHONE_IS_PRIMARY));
-//                insert.bindLong(13, currentMillis);
-//                insert.executeInsert();
-//                final String contactPhoneNumber =
-//                        updatedContactCursor.getString(PhoneQuery.PHONE_NUMBER);
-//                final ArrayList<String> numberPrefixes =
-//                        SmartDialPrefix.parseToNumberTokens(contactPhoneNumber);
-//                for (String numberPrefix : numberPrefixes) {
-//                    numberInsert.bindLong(1, updatedContactCursor.getLong(
-//                            PhoneQuery.PHONE_CONTACT_ID));
-//                    numberInsert.bindString(2, numberPrefix);
-//                    numberInsert.executeInsert();
-//                    numberInsert.clearBindings();
-//                }
-//            }
-//            db.setTransactionSuccessful();
-//        } finally {
-//            db.endTransaction();
-//        }
-//    }
+    public void updateT9Contact(long contactId, String displayName, List<String> phoneNumbers) {
+        SQLiteDatabase db = getReadableDatabase();
+        removeUpdatedContacts(db, contactId);
+        insertT9Contact(contactId, displayName, phoneNumbers);
+        db.close();
+    }
 
-//    /**
-//     * Inserts prefixes of contact names to the prefix table.
-//     *
-//     * @param db Database pointer to the smartdial database.
-//     * @param nameCursor Cursor pointing to the list of distinct updated contacts.
-//     */
-//    void insertNamePrefixes(SQLiteDatabase db, Cursor nameCursor) {
-//        final int columnIndexName = nameCursor.getColumnIndex(
-//                SmartDialDbColumns.DISPLAY_NAME_PRIMARY);
-//        final int columnIndexContactId = nameCursor.getColumnIndex(SmartDialDbColumns.CONTACT_ID);
-//        db.beginTransaction();
-//        try {
-//            final String sqlInsert = "INSERT INTO " + Tables.PREFIX_TABLE + " (" +
-//                    PrefixColumns.CONTACT_ID + ", " +
-//                    PrefixColumns.PREFIX  + ") " +
-//                    " VALUES (?, ?)";
-//            final SQLiteStatement insert = db.compileStatement(sqlInsert);
-//            while (nameCursor.moveToNext()) {
-//                /** Computes a list of prefixes of a given contact name. */
-//                final ArrayList<String> namePrefixes =
-//                        SmartDialPrefix.generateNamePrefixes(nameCursor.getString(columnIndexName));
-//                for (String namePrefix : namePrefixes) {
-//                    insert.bindLong(1, nameCursor.getLong(columnIndexContactId));
-//                    insert.bindString(2, namePrefix);
-//                    insert.executeInsert();
-//                    insert.clearBindings();
-//                }
-//            }
-//            db.setTransactionSuccessful();
-//        } finally {
-//            db.endTransaction();
-//        }
-//    }
+
+    private void removeUpdatedContacts(SQLiteDatabase db, long contactId) {
+        db.delete(Tables.T9_CONTACT, T9ContactColumns.CONTACT_ID + "=" +
+                        contactId, null);
+    }
+
+    private void insertPhoneNumberQueries(SQLiteDatabase db, long contactId, List<String> phoneNumbers) {
+        try {
+            final String numberSqlInsert = "INSERT INTO " + Tables.T9_CONTACT + " (" +
+                    T9ContactColumns.CONTACT_ID + ", " +
+                    T9ContactColumns.T9_QUERY  + ") " +
+                    " VALUES (?, ?)";
+            final SQLiteStatement numberInsert = db.compileStatement(numberSqlInsert);
+
+            for (int i = 0; i < phoneNumbers.size(); i++) {
+                numberInsert.bindLong(1, contactId);
+                numberInsert.bindString(2, phoneNumbers.get(i));
+                numberInsert.executeInsert();
+                numberInsert.clearBindings();
+            }
+        } finally {
+
+        }
+    }
+
+    private void insertDisplayNameQuery(SQLiteDatabase db, long contactId, String displayName) {
+        try {
+            final String sqlInsert = "INSERT INTO " + Tables.T9_CONTACT + " (" +
+                    T9ContactColumns.CONTACT_ID + ", " +
+                    T9ContactColumns.T9_QUERY  + ") " +
+                    " VALUES (?, ?)";
+            final SQLiteStatement insert = db.compileStatement(sqlInsert);
+
+            /** Computes a list of prefixes of a given contact name. */
+            ArrayList<String> T9NameQueries = T9Query.generateT9NameQueries(displayName);
+            for (String T9NameQuery : T9NameQueries) {
+                insert.bindLong(1, contactId);
+                insert.bindString(2, T9NameQuery);
+                insert.executeInsert();
+                insert.clearBindings();
+            }
+        } finally {
+
+        }
+    }
 
     // TODO
     public ArrayList<Long> getT9ContactIdMatches(String T9Query) {
@@ -282,11 +216,12 @@ public class T9DatabaseHelper extends SQLiteOpenHelper {
             if (matches.contains(contactId)) {
                 continue;
             }
-
             matches.add(contactId);
         }
 
         cursor.close();
+
+        db.close();
 
         return matches;
     }

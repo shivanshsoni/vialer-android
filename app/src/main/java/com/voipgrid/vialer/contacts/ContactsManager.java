@@ -9,8 +9,11 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.util.Log;
 
+import com.voipgrid.vialer.BuildConfig;
 import com.voipgrid.vialer.R;
+import com.voipgrid.vialer.t9.T9DatabaseHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,9 @@ import java.util.List;
  * Class for contact related operations.
  */
 public class ContactsManager {
+
+    private static final String LOG_TAG = ContactsManager.class.getName();
+    private static final boolean DEBUG = false;
 
     /**
      * Check if their is a sync account present. If not create one.
@@ -67,34 +73,43 @@ public class ContactsManager {
      * @param displayName The display name of the contact.
      * @param phoneNumbers The phone numbers of the contact.
      */
-    public static void syncContact(Context context, String displayName, List<String> phoneNumbers) {
-        String where = ContactsContract.RawContacts.DISPLAY_NAME_PRIMARY + " = ? AND "
+    public static void syncContact(Context context, long contactId, String displayName, List<String> phoneNumbers) {
+
+        if (DEBUG) {
+            Log.d(LOG_TAG, "Syncing contact with id " + Long.toString(contactId) + " and name " + displayName);
+        }
+
+        String where = ContactsContract.RawContacts.CONTACT_ID + " = ? AND "
                 + ContactsContract.RawContacts.ACCOUNT_TYPE + " = ? AND "
                 + ContactsContract.RawContacts.ACCOUNT_NAME + " = ?";
         String[] whereArg = new String[] {
-                displayName,
+                Long.toString(contactId),
                 context.getString(R.string.account_type),
                 context.getString(R.string.contacts_app_name)};
 
+        T9DatabaseHelper t9Database = new T9DatabaseHelper(context);
+
         // TODO VIALA-340: Duplicate contacts with same name.
         ContentResolver resolver = context.getContentResolver();
-        Cursor sameName = resolver.query(ContactsContract.RawContacts.CONTENT_URI, null, where,
+        Cursor sameContact = resolver.query(ContactsContract.RawContacts.CONTENT_URI, null, where,
                 whereArg, null);
 
-        if (sameName != null) {
+        if (sameContact != null) {
             // Prevent duplicate entries in RawContactsArray.
-            if (sameName.getCount() == 0) {
-                sameName.close();
+            if (sameContact.getCount() == 0) {
+                sameContact.close();
                 // Not an existing record so create app contact.
                 addAppContact(context, displayName, phoneNumbers);
+                t9Database.insertT9Contact(contactId, displayName, phoneNumbers);
             } else {
-                sameName.moveToFirst();
-                String contactId = sameName.getString(sameName.getColumnIndex(
-                        ContactsContract.Contacts._ID));
-                sameName.close();
+                sameContact.moveToFirst();
+                String vailerContactId = sameContact.getString(sameContact.getColumnIndex(
+                        ContactsContract.RawContacts._ID));
+                sameContact.close();
                 // Does exist, take first contact and update it.
                 // TODO VIALA-340: Duplicate contacts with same name.
-                updateAppContact(context, contactId, phoneNumbers);
+                updateAppContact(context, vailerContactId, phoneNumbers);
+                t9Database.updateT9Contact(contactId, displayName, phoneNumbers);
             }
         }
     }
@@ -152,10 +167,10 @@ public class ContactsManager {
      * Function for updating a app contact related to a existing contact.
      *
      * @param context Context for Strings and ContentResolver.
-     * @param contactId Id of the app contact that needs to be updated.
+     * @param vailerContactId Id of the app contact that needs to be updated.
      * @param phoneNumbers New phone numbers of the related contact.
      */
-    private static void updateAppContact(Context context, String contactId, List<String> phoneNumbers) {
+    private static void updateAppContact(Context context, String vailerContactId, List<String> phoneNumbers) {
         // Initialization.
         String[] projection;
         String selection;
@@ -170,7 +185,7 @@ public class ContactsManager {
         selection = ContactsContract.Data.RAW_CONTACT_ID + " = ? AND "
                 + ContactsContract.Data.MIMETYPE + " = ?";
         selectionArgs = new String[] {
-                contactId,
+                vailerContactId,
                 mimetype,
         };
 
@@ -195,11 +210,11 @@ public class ContactsManager {
 
         // These numbers need to be added to the app contact.
         if (phoneNumbers.size() > 0) {
-            addAppContactActionInsertsToOps(context, ops, Long.parseLong(contactId), phoneNumbers);
+            addAppContactActionInsertsToOps(context, ops, Long.parseLong(vailerContactId), phoneNumbers);
         }
         // These numbers need to be deleted from the app contact.
         if (currentPhoneNumbers.size() > 0){
-            addAppContactActionDeletesToOps(context, ops, contactId, currentPhoneNumbers);
+            addAppContactActionDeletesToOps(context, ops, vailerContactId, currentPhoneNumbers);
         }
 
         // If we have operations execute them.
