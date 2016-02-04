@@ -9,13 +9,10 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
-import android.provider.ContactsContract.Data;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.SimpleCursorAdapter;
 
-import com.voipgrid.vialer.R;
 
 
 /**
@@ -51,35 +48,6 @@ public class ListViewContactsLoader extends AsyncTask<CharSequence, Void, Cursor
     }
 
     /**
-     *
-     * @param constraintString a number the app needs to convert to possible
-     *                         t9 string values that could contain a name of
-     *                         a contact
-     * @return a string builder containing a GLOB that can be used to search for
-     * contact display_name using patterns.
-     */
-    @NonNull
-    private StringBuilder t9LookupStringBuilder(String constraintString) {
-        String[] t9Lookup = mContext.getResources().getStringArray(R.array.t9lookup);
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0, constraintLength = constraintString.length(); i < constraintLength; ++i) {
-            char c = constraintString.charAt(i);
-
-            if (c >= '0' && c <= '9') {
-                builder.append(t9Lookup[c - '0']);
-            } else if (c == '+') {
-                builder.append(c);
-            } else {
-                builder.append("[");
-                builder.append(Character.toLowerCase(c));
-                builder.append(Character.toUpperCase(c));
-                builder.append("]");
-            }
-        }
-        return builder;
-    }
-
-    /**
      * Covert a cursor obtained from a ContentResolver query to a MatrixCursor that
      * can be manipulated dynamically
      * @param cursor Matrix cursor obtained from
@@ -106,7 +74,7 @@ public class ListViewContactsLoader extends AsyncTask<CharSequence, Void, Cursor
                     }
                 }
 
-                if (number.startsWith(t9query)) {
+                if (number != null && number.startsWith(t9query)) {
                     addResult = true;
                 }
             } else {
@@ -124,25 +92,6 @@ public class ListViewContactsLoader extends AsyncTask<CharSequence, Void, Cursor
             }
 
         }
-//        for (boolean ok = cursor.moveToFirst(); ok; ok = cursor.moveToNext()) {
-//            long contactId = cursor.getInt(cursor.getColumnIndex(Phone.CONTACT_ID));
-//            mMatrixCursor.addRow(new Object[]{
-//                    Long.toString(contactId),
-//                    cursor.getString(cursor.getColumnIndex(Phone.DISPLAY_NAME_PRIMARY)),
-//                    ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId),
-//                    cursor.getString(cursor.getColumnIndex(Phone.NUMBER))
-//            });
-//        }
-        // OLD
-//        for (boolean ok = cursor.moveToFirst(); ok; ok = cursor.moveToNext()) {
-//            long contactId = cursor.getInt(cursor.getColumnIndex(Data.CONTACT_ID));
-//            mMatrixCursor.addRow(new Object[]{
-//                    Long.toString(contactId),
-//                    cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME_PRIMARY)),
-//                    ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId),
-//                    cursor.getString(cursor.getColumnIndex(Phone.DATA3))
-//            });
-//        }
     }
 
     /**
@@ -155,7 +104,10 @@ public class ListViewContactsLoader extends AsyncTask<CharSequence, Void, Cursor
     protected Cursor doInBackground(CharSequence... params) {
         // Check if we started with a T9 searchString.
         String T9Query = (params.length > 0 ? searchString(params[0]) : "");
-        // Then convert that searchNumber to a potential name.
+
+        if (T9Query.length() == 0) {
+            return mMatrixCursor;
+        }
 
         long start = System.currentTimeMillis();
 
@@ -165,7 +117,6 @@ public class ListViewContactsLoader extends AsyncTask<CharSequence, Void, Cursor
 
         if (T9Query.length() == 0) {
             selection = null;
-            sortOrder +=  " LIMIT 20";
         }
 
 
@@ -187,19 +138,6 @@ public class ListViewContactsLoader extends AsyncTask<CharSequence, Void, Cursor
                 null,
                 sortOrder
         );
-        // Maybe?
-//        Cursor dataCursor = mContentResolver.query(
-//                Data.CONTENT_URI,
-//
-//                new String[] {
-//                        Data.CONTACT_ID,
-//                        Data.DISPLAY_NAME_PRIMARY,
-//                        Phone.DATA3
-//                },
-//                Data.CONTACT_ID + " IN " + "(" + TextUtils.join(", ", t9Database.getT9ContactIdMatches(searchNumber).toArray()) + ")" + " and " + Data.MIMETYPE + " = '" + mContext.getString(R.string.profile_mimetype) + "' AND " + Phone.HAS_PHONE_NUMBER + " = 1",
-//                null,
-//                null
-//        );
 
         long end = System.currentTimeMillis();
 

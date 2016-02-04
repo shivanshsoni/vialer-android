@@ -160,31 +160,20 @@ public class DialerActivity extends AppCompatActivity implements
      * listener for the T9 contact search.
      */
     private void setupContactParts() {
-        Cursor cursor = this.getContentResolver()
-                .query(
-                    ContactsContract.Contacts.CONTENT_URI,
-                    null,
-                    ContactsContract.Data.HAS_PHONE_NUMBER + " = 1",
-                    null,
-                    null
-                );
 
-        // Due to performance we only support <= 750 contacts for T9 search.
-        if (cursor == null || cursor.getCount() <= 750){
-            // Setup the list view.
-            setupContactsListView();
-            // Replace the empty listener set in setupKeypad with the T9 search function.
-            mNumberInputEditText.setOnInputChangedListener(new NumberInputEditText.OnInputChangedListener() {
-                @Override
-                public void onInputChanged(String phoneNumber) {
-                    new ListViewContactsLoader(getBaseContext(), mContactsAdapter)
-                            .execute(phoneNumber);
-                }
-            });
-        } else {
-            mEmptyView.setText(getString(R.string.dialer_too_many_contacts));
-            mContactsListView.setEmptyView(mEmptyView);
-        }
+        // Setup the list view.
+        setupContactsListView();
+        // Replace the empty listener set in setupKeypad with the T9 search function.
+        mNumberInputEditText.setOnInputChangedListener(new NumberInputEditText.OnInputChangedListener() {
+            @Override
+            public void onInputChanged(String phoneNumber) {
+                new ListViewContactsLoader(getBaseContext(), mContactsAdapter)
+                        .execute(phoneNumber);
+            }
+        });
+
+        mEmptyView.setText(getString(R.string.dialer_too_many_contacts));
+        mContactsListView.setEmptyView(mEmptyView);
     }
 
     private void setupContactsListView() {
