@@ -73,7 +73,7 @@ public class ContactsManager {
      * @param displayName The display name of the contact.
      * @param phoneNumbers The phone numbers of the contact.
      */
-    public static void syncContact(Context context, long contactId, String displayName, List<String> phoneNumbers) {
+    public static void syncContact(Context context, long contactId, String displayName, List<String> phoneNumbers, T9DatabaseHelper t9Database) {
 
         if (DEBUG) {
             Log.d(LOG_TAG, "Syncing contact with id " + Long.toString(contactId) + " and name " + displayName);
@@ -87,7 +87,7 @@ public class ContactsManager {
                 context.getString(R.string.account_type),
                 context.getString(R.string.contacts_app_name)};
 
-        T9DatabaseHelper t9Database = new T9DatabaseHelper(context);
+        List<String> T9PhoneNumbers = new ArrayList<>(phoneNumbers);
 
         // TODO VIALA-340: Duplicate contacts with same name.
         ContentResolver resolver = context.getContentResolver();
@@ -100,7 +100,7 @@ public class ContactsManager {
                 sameContact.close();
                 // Not an existing record so create app contact.
                 addAppContact(context, displayName, phoneNumbers);
-                t9Database.insertT9Contact(contactId, displayName, phoneNumbers);
+                t9Database.insertT9Contact(contactId, displayName, T9PhoneNumbers);
             } else {
                 sameContact.moveToFirst();
                 String vailerContactId = sameContact.getString(sameContact.getColumnIndex(
@@ -109,7 +109,7 @@ public class ContactsManager {
                 // Does exist, take first contact and update it.
                 // TODO VIALA-340: Duplicate contacts with same name.
                 updateAppContact(context, vailerContactId, phoneNumbers);
-                t9Database.updateT9Contact(contactId, displayName, phoneNumbers);
+                t9Database.updateT9Contact(contactId, displayName, T9PhoneNumbers);
             }
         }
     }

@@ -6,7 +6,10 @@ import android.net.Uri;
 import android.provider.ContactsContract;
 import android.util.Log;
 
+import com.voipgrid.vialer.t9.T9DatabaseHelper;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -86,6 +89,7 @@ public class ContactsSyncTask {
         }
         // Gives you the list of contacts who have phone numbers.
         Cursor cursor = queryAllContacts();
+        T9DatabaseHelper t9Database = new T9DatabaseHelper(mContext);
 
         while (cursor.moveToNext()) {
             long contactId = cursor.getLong(cursor.getColumnIndex(ContactsContract.Contacts._ID));
@@ -126,8 +130,11 @@ public class ContactsSyncTask {
             if (phoneNumbers.size() <= 0){
                 continue;
             }
-            ContactsManager.syncContact(mContext, contactId, name, phoneNumbers);
+            ContactsManager.syncContact(mContext, contactId, name, phoneNumbers, t9Database);
         }
         cursor.close();
+
+        // Remove dead weight from t9 db.
+        t9Database.afterSyncCleanup();
     }
 }
