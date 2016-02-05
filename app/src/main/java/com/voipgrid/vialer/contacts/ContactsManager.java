@@ -73,7 +73,7 @@ public class ContactsManager {
      * @param displayName The display name of the contact.
      * @param phoneNumbers The phone numbers of the contact.
      */
-    public static void syncContact(Context context, long contactId, String displayName, List<String> phoneNumbers, T9DatabaseHelper t9Database) {
+    public static void syncContact(Context context, long contactId, String displayName, List<String> normalizedPhoneNumbers, List<String> phoneNumbers, T9DatabaseHelper t9Database) {
 
         if (DEBUG) {
             Log.d(LOG_TAG, "Syncing contact with id " + Long.toString(contactId) + " and name " + displayName);
@@ -87,8 +87,6 @@ public class ContactsManager {
                 context.getString(R.string.account_type),
                 context.getString(R.string.contacts_app_name)};
 
-        List<String> T9PhoneNumbers = new ArrayList<>(phoneNumbers);
-
         // TODO VIALA-340: Duplicate contacts with same name.
         ContentResolver resolver = context.getContentResolver();
         Cursor sameContact = resolver.query(ContactsContract.RawContacts.CONTENT_URI, null, where,
@@ -99,8 +97,8 @@ public class ContactsManager {
             if (sameContact.getCount() == 0) {
                 sameContact.close();
                 // Not an existing record so create app contact.
-                addAppContact(context, displayName, phoneNumbers);
-                t9Database.insertT9Contact(contactId, displayName, T9PhoneNumbers);
+                addAppContact(context, displayName, normalizedPhoneNumbers);
+                t9Database.insertT9Contact(contactId, displayName, phoneNumbers);
             } else {
                 sameContact.moveToFirst();
                 String vailerContactId = sameContact.getString(sameContact.getColumnIndex(
@@ -108,8 +106,8 @@ public class ContactsManager {
                 sameContact.close();
                 // Does exist, take first contact and update it.
                 // TODO VIALA-340: Duplicate contacts with same name.
-                updateAppContact(context, vailerContactId, phoneNumbers);
-                t9Database.updateT9Contact(contactId, displayName, T9PhoneNumbers);
+                updateAppContact(context, vailerContactId, normalizedPhoneNumbers);
+                t9Database.updateT9Contact(contactId, displayName, phoneNumbers);
             }
         }
     }

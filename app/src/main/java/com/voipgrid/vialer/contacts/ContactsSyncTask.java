@@ -104,8 +104,10 @@ public class ContactsSyncTask {
                 continue;
             }
 
-            List<String> phoneNumbers = new ArrayList<>(phones.getCount());
+            List<String> normalizedPhoneNumbers = new ArrayList<>();
             String normalizedPhoneNumber;
+            List<String> phoneNumbers = new ArrayList<>();
+            String phoneNumber;
 
             while (phones.moveToNext()) {
                 normalizedPhoneNumber = getColumnFromCursor(
@@ -119,18 +121,33 @@ public class ContactsSyncTask {
                 }
 
                 // Avoid duplicate phone numbers.
-                if (!phoneNumbers.contains(normalizedPhoneNumber)){
-                    phoneNumbers.add(normalizedPhoneNumber);
+                if (!normalizedPhoneNumbers.contains(normalizedPhoneNumber)){
+                    normalizedPhoneNumbers.add(normalizedPhoneNumber);
+                }
+
+                phoneNumber = getColumnFromCursor(
+                        ContactsContract.CommonDataKinds.Phone.NUMBER,
+                        phones
+                );
+
+                // We do not want to synchronize null numbers.
+                if (phoneNumber == null || phoneNumber.length() < 1){
+                    continue;
+                }
+
+                // Avoid duplicate phone numbers.
+                if (!phoneNumbers.contains(phoneNumber)){
+                    phoneNumbers.add(phoneNumber.replace(" ", ""));
                 }
 
             }
             phones.close();
 
             // Found no normalized phone numbers so don't sync the contact.
-            if (phoneNumbers.size() <= 0){
+            if (normalizedPhoneNumbers.size() <= 0){
                 continue;
             }
-            ContactsManager.syncContact(mContext, contactId, name, phoneNumbers, t9Database);
+            ContactsManager.syncContact(mContext, contactId, name, normalizedPhoneNumbers, phoneNumbers, t9Database);
         }
         cursor.close();
 
