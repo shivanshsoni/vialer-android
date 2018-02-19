@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 
 import com.google.android.gms.analytics.Tracker;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.voipgrid.vialer.BuildConfig;
 import com.voipgrid.vialer.Preferences;
 import com.voipgrid.vialer.R;
 import com.voipgrid.vialer.analytics.AnalyticsApplication;
@@ -108,7 +109,7 @@ public class MiddlewareHelper {
         String fullName = ((SystemUser) jsonStorage.get(SystemUser.class)).getFullName();
         String appName = context.getPackageName();
         Call<ResponseBody> call = api.register(
-                fullName, token, sipUserId, Build.VERSION.CODENAME, Build.VERSION.RELEASE, appName
+                fullName, token, sipUserId, Build.VERSION.SDK_INT + "(" + Build.VERSION.RELEASE + " - " + Build.VERSION.INCREMENTAL + ")", String.valueOf(BuildConfig.VERSION_CODE), appName
         );
         editor.putString(CURRENT_TOKEN, token);
 

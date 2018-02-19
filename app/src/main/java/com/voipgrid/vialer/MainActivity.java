@@ -23,6 +23,7 @@ import com.voipgrid.vialer.callrecord.CallRecordFragment;
 import com.voipgrid.vialer.contacts.SyncUtils;
 import com.voipgrid.vialer.contacts.UpdateChangedContactsService;
 import com.voipgrid.vialer.dialer.DialerActivity;
+import com.voipgrid.vialer.migrating.MigrationRunner;
 import com.voipgrid.vialer.onboarding.AccountFragment;
 import com.voipgrid.vialer.onboarding.SetupActivity;
 import com.voipgrid.vialer.permissions.ContactsPermission;
@@ -33,7 +34,6 @@ import com.voipgrid.vialer.util.ConnectivityHelper;
 import com.voipgrid.vialer.util.JsonStorage;
 import com.voipgrid.vialer.util.PhoneAccountHelper;
 import com.voipgrid.vialer.util.UpdateActivity;
-import com.voipgrid.vialer.util.UpdateHelper;
 
 
 public class MainActivity extends NavigationDrawerActivity implements
@@ -46,6 +46,14 @@ public class MainActivity extends NavigationDrawerActivity implements
 
     private BroadcastReceiver mBroadcastReceiver;
     private ReachabilityReceiver mReachabilityReceiver;
+    private MigrationRunner mMigrationRunner = MigrationRunner.init();
+
+    /**
+     * If this is set to TRUE, Vialer has just recently attempted to migrate and should
+     * not immediately try again. This is to prevent migration from getting caught in a loop. Migration
+     * will try again the next time this activity is loaded.
+     */
+    private static boolean sRecentlyAttemptedMigration = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +82,8 @@ public class MainActivity extends NavigationDrawerActivity implements
             startActivity(new Intent(this, SetupActivity.class));
             finish();
             return;
-        } else if (UpdateHelper.requiresUpdate(this)) {
+        } else if (mMigrationRunner.requiresMigrating() && !sRecentlyAttemptedMigration) {
+            sRecentlyAttemptedMigration = true;
             Intent intent = new Intent(this, UpdateActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
@@ -105,6 +114,8 @@ public class MainActivity extends NavigationDrawerActivity implements
                 startService(new Intent(this, UpdateChangedContactsService.class));
             }
         }
+
+        sRecentlyAttemptedMigration = false;
 
         SyncUtils.setPeriodicSync(this);
 
