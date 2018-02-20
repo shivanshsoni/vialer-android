@@ -1,6 +1,6 @@
-package com.voipgrid.vialer.fcm;
+package com.voipgrid.vialer.middleware;
 
-import static com.voipgrid.vialer.fcm.MiddlewareMessage.Builder.SUPPRESSED;
+import static com.voipgrid.vialer.middleware.MiddlewareMessage.Builder.SUPPRESSED;
 
 import android.content.Context;
 import android.support.annotation.StringDef;

@@ -1,6 +1,6 @@
 package com.voipgrid.vialer.fcm;
 
-import static com.voipgrid.vialer.fcm.MiddlewareMessage.Builder.MESSAGE_START_TIME;
+import static com.voipgrid.vialer.middleware.MiddlewareMessage.Builder.MESSAGE_START_TIME;
 import static com.voipgrid.vialer.sip.SipService.EXTRA_MIDDLEWARE_MESSAGE;
 
 import android.content.Context;
@@ -9,6 +9,7 @@ import android.net.Uri;
 
 import com.voipgrid.vialer.logging.LogHelper;
 import com.voipgrid.vialer.logging.RemoteLogger;
+import com.voipgrid.vialer.middleware.MiddlewareMessage;
 import com.voipgrid.vialer.sip.SipConstants;
 import com.voipgrid.vialer.sip.SipService;
 import com.voipgrid.vialer.sip.SipUri;

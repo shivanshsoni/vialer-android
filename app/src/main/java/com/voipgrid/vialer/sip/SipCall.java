@@ -9,7 +9,7 @@ import android.util.Log;
 import com.voipgrid.vialer.R;
 import com.voipgrid.vialer.analytics.AnalyticsApplication;
 import com.voipgrid.vialer.analytics.AnalyticsHelper;
-import com.voipgrid.vialer.fcm.MiddlewareMessage;
+import com.voipgrid.vialer.middleware.MiddlewareMessage;
 import com.voipgrid.vialer.logging.LogHelper;
 import com.voipgrid.vialer.logging.RemoteLogger;
 import com.voipgrid.vialer.sip.SipConstants.CallMissedReason;

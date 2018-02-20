@@ -12,14 +12,13 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import com.voipgrid.vialer.CallActivity;
 import com.voipgrid.vialer.Preferences;
 import com.voipgrid.vialer.api.models.PhoneAccount;
 import com.voipgrid.vialer.call.NativeCallManager;
 import com.voipgrid.vialer.dialer.ToneGenerator;
-import com.voipgrid.vialer.fcm.MiddlewareMessage;
+import com.voipgrid.vialer.middleware.MiddlewareMessage;
 import com.voipgrid.vialer.logging.RemoteLogger;
 import com.voipgrid.vialer.util.JsonStorage;
 import com.voipgrid.vialer.util.NotificationHelper;

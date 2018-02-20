@@ -4,6 +4,7 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.voipgrid.vialer.logging.LogHelper;
 import com.voipgrid.vialer.logging.RemoteLogger;
+import com.voipgrid.vialer.middleware.MiddlewareMessage;
 
 /**
  * Listen to messages from FCM. The backend server sends us FCM notifications when we have

@@ -2,9 +2,7 @@ package com.voipgrid.vialer.sip;
 
 import static com.voipgrid.vialer.sip.SipService.EXTRA_MIDDLEWARE_MESSAGE;
 
-import android.util.Log;
-
-import com.voipgrid.vialer.fcm.MiddlewareMessage;
+import com.voipgrid.vialer.middleware.MiddlewareMessage;
 
 import org.pjsip.pjsua2.AccountConfig;
 import org.pjsip.pjsua2.AccountInfo;

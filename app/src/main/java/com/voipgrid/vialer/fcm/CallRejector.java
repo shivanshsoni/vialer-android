@@ -2,7 +2,6 @@ package com.voipgrid.vialer.fcm;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.voipgrid.vialer.R;
 import com.voipgrid.vialer.VialerApplication;
@@ -10,6 +9,7 @@ import com.voipgrid.vialer.analytics.AnalyticsHelper;
 import com.voipgrid.vialer.api.Registration;
 import com.voipgrid.vialer.api.ServiceGenerator;
 import com.voipgrid.vialer.logging.RemoteLogger;
+import com.voipgrid.vialer.middleware.MiddlewareMessage;
 import com.voipgrid.vialer.util.ConnectivityHelper;
 
 import okhttp3.ResponseBody;

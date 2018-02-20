@@ -3,7 +3,7 @@ package com.voipgrid.vialer.logging;
 import com.google.firebase.messaging.RemoteMessage;
 import com.voipgrid.vialer.R;
 import com.voipgrid.vialer.VialerApplication;
-import com.voipgrid.vialer.fcm.MiddlewareMessage;
+import com.voipgrid.vialer.middleware.MiddlewareMessage;
 import com.voipgrid.vialer.sip.SipService;
 import com.voipgrid.vialer.util.ConnectivityHelper;
 

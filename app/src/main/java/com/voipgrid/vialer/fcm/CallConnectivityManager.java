@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.PowerManager;
 
 import com.voipgrid.vialer.logging.RemoteLogger;
+import com.voipgrid.vialer.middleware.MiddlewareMessage;
 import com.voipgrid.vialer.util.ConnectivityHelper;
 
 import java.util.HashMap;

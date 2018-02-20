@@ -1,7 +1,7 @@
 package com.voipgrid.vialer.sip;
 
 import static com.voipgrid.vialer.api.ServiceGenerator.getUserAgentHeader;
-import static com.voipgrid.vialer.fcm.MiddlewareMessage.Builder.MESSAGE_START_TIME;
+import static com.voipgrid.vialer.middleware.MiddlewareMessage.Builder.MESSAGE_START_TIME;
 
 import static org.pjsip.pjsua2.pj_constants_.PJ_TRUE;
 import static org.pjsip.pjsua2.pjsua_call_flag.PJSUA_CALL_REINIT_MEDIA;
@@ -24,7 +24,6 @@ import com.voipgrid.vialer.analytics.AnalyticsHelper;
 import com.voipgrid.vialer.api.Registration;
 import com.voipgrid.vialer.api.ServiceGenerator;
 import com.voipgrid.vialer.api.models.PhoneAccount;
-import com.voipgrid.vialer.fcm.FcmMessagingService;
 import com.voipgrid.vialer.logging.RemoteLogger;
 import com.voipgrid.vialer.util.ConnectivityHelper;
 
