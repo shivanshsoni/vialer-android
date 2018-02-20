@@ -121,11 +121,9 @@ public class MiddlewareMessage implements Serializable {
 
         private RemoteMessage mRemoteMessage;
 
-        protected Builder(RemoteMessage remoteMessage) {
+        protected MiddlewareMessage build(RemoteMessage remoteMessage) {
             mRemoteMessage = remoteMessage;
-        }
 
-        protected MiddlewareMessage build() {
             return new MiddlewareMessage(
                     stringFromData(RESPONSE_URL),
                     stringFromData(REQUEST_TOKEN),
@@ -137,10 +135,6 @@ public class MiddlewareMessage implements Serializable {
             );
         }
 
-        private String stringFromData(String key) {
-            return mRemoteMessage.getData().get(key) != null ? mRemoteMessage.getData().get(key) : "";
-        }
-
         /**
          * Attempts to build a middleware message from a remote message.
          *
@@ -148,7 +142,11 @@ public class MiddlewareMessage implements Serializable {
          * @return The MiddlewareMessage or NULL if the message cannot be built.
          */
         public static MiddlewareMessage fromRemoteMessage(RemoteMessage remoteMessage) {
-            return new MiddlewareMessage.Builder(remoteMessage).build();
+            return new MiddlewareMessage.Builder().build(remoteMessage);
+        }
+
+        private String stringFromData(String key) {
+            return mRemoteMessage.getData().get(key) != null ? mRemoteMessage.getData().get(key) : "";
         }
     }
 }
