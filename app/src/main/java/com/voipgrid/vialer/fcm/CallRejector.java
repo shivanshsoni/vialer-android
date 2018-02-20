@@ -41,7 +41,7 @@ public class CallRejector {
                 mContext.getString(R.string.analytics_event_action_middleware_rejected),
                 analyticsLabel
         );
-        replyServer(middlewareMessage, false);
+        replyServer(middlewareMessage);
     }
 
     public void rejectDueToCallAlreadyInProgress(MiddlewareMessage middlewareMessage) {
@@ -53,7 +53,7 @@ public class CallRejector {
                 mContext.getString(R.string.analytics_event_label_declined_another_call_in_progress)
         );
 
-        replyServer(middlewareMessage, false);
+        replyServer(middlewareMessage);
     }
 
     public void rejectDueToUserDeclining(MiddlewareMessage middlewareMessage) {
@@ -65,21 +65,21 @@ public class CallRejector {
                 mContext.getString(R.string.analytics_event_label_declined)
         );
 
-        replyServer(middlewareMessage, false);
+        replyServer(middlewareMessage);
     }
 
     /**
      * Notify the middleware server that we are, in fact, alive.
      */
-    private void replyServer(MiddlewareMessage middlewareMessage, boolean isAvailable) {
+    private void replyServer(MiddlewareMessage middlewareMessage) {
         mRemoteLogger.d("replyServer");
         Registration registrationApi = ServiceGenerator.createService(
                 mContext,
                 Registration.class,
                 middlewareMessage.getResponseUrl()
         );
+        Call<ResponseBody> call = registrationApi.reply(middlewareMessage.getRequestToken(), false, middlewareMessage.getMessageStartTime());
 
-        Call<ResponseBody> call = registrationApi.reply(middlewareMessage.getRequestToken(), isAvailable, middlewareMessage.getMessageStartTime());
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
