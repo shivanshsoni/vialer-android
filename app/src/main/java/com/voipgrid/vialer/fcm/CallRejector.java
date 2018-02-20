@@ -29,7 +29,7 @@ public class CallRejector {
         mRemoteLogger = new RemoteLogger(this.getClass()).enableConsoleLogging();
     }
 
-    public void rejectForPoorConnectivity(MiddlewareMessage middlewareMessage, ConnectivityHelper connectivityHelper) {
+    public void rejectDueToPoorConnectivity(MiddlewareMessage middlewareMessage, ConnectivityHelper connectivityHelper) {
         mRemoteLogger.d("Reject due to lack of connection");
         // Inform the middleware the incoming call is received but the app can not handle
         // the sip call because there is no LTE or Wifi connection available at this

@@ -42,7 +42,7 @@ public class CallMiddlewareMessageHandler {
         // attempts then the call will be rejected.
         if(!mCallConnectivityManager.isConnectionSufficient(middlewareMessage)) {
             if(mCallConnectivityManager.hasReachedMaxAttempts(middlewareMessage)) {
-                mCallRejector.rejectForPoorConnectivity(middlewareMessage, mCallConnectivityManager.getConnectivityHelper());
+                mCallRejector.rejectDueToPoorConnectivity(middlewareMessage, mCallConnectivityManager.getConnectivityHelper());
                 return;
             }
             mRemoteLogger.e("Connection is insufficient. For now do nothing and wait for next middleware push");
