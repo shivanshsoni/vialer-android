@@ -1,4 +1,4 @@
-package com.voipgrid.vialer.fcm;
+package com.voipgrid.vialer.util;
 
 import static android.content.Context.POWER_SERVICE;
 
@@ -8,11 +8,10 @@ import android.os.PowerManager;
 
 import com.voipgrid.vialer.logging.RemoteLogger;
 import com.voipgrid.vialer.middleware.MiddlewareMessage;
-import com.voipgrid.vialer.util.ConnectivityHelper;
 
 import java.util.HashMap;
 
-public class CallConnectivityManager {
+public class ConnectivityChecker {
 
     private RemoteLogger mRemoteLogger;
     private ConnectivityHelper mConnectivityHelper;
@@ -30,7 +29,7 @@ public class CallConnectivityManager {
      */
     private static final HashMap<String, Integer> attempts = new HashMap<>();
 
-    public CallConnectivityManager(Context context) {
+    public ConnectivityChecker(Context context) {
         mRemoteLogger = new RemoteLogger(this.getClass()).enableConsoleLogging();
         mConnectivityHelper = ConnectivityHelper.get(context);
         mContext = context;

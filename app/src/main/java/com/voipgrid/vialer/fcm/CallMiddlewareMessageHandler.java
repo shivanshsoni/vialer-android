@@ -14,19 +14,20 @@ import com.voipgrid.vialer.middleware.MiddlewareMessage;
 import com.voipgrid.vialer.sip.SipConstants;
 import com.voipgrid.vialer.sip.SipService;
 import com.voipgrid.vialer.sip.SipUri;
+import com.voipgrid.vialer.util.ConnectivityChecker;
 import com.voipgrid.vialer.util.PhoneNumberUtils;
 
 public class CallMiddlewareMessageHandler {
 
     private RemoteLogger mRemoteLogger;
     private Context mContext;
-    private CallConnectivityManager mCallConnectivityManager;
+    private ConnectivityChecker mConnectivityChecker;
     private CallRejectionAnalytics mCallRejectionAnalytics;
 
     public CallMiddlewareMessageHandler(Context context) {
         mRemoteLogger = new RemoteLogger(this.getClass()).enableConsoleLogging();
         mContext = context;
-        mCallConnectivityManager = new CallConnectivityManager(context);
+        mConnectivityChecker = new ConnectivityChecker(context);
         mCallRejectionAnalytics = new CallRejectionAnalytics(context);
     }
 
@@ -36,14 +37,14 @@ public class CallMiddlewareMessageHandler {
      * @param middlewareMessage
      */
     public void handle(MiddlewareMessage middlewareMessage) {
-        LogHelper.using(mRemoteLogger).logCallHandling(SipService.sipServiceActive, mCallConnectivityManager.getConnectivityHelper(), middlewareMessage);
+        LogHelper.using(mRemoteLogger).logCallHandling(SipService.sipServiceActive, mConnectivityChecker.getConnectivityHelper(), middlewareMessage);
 
         // If the connection is not currently sufficient we will wait for more push messages
         // as the connection may improve (e.g. leaving standby mode), if we have reached too many
         // attempts then the call will be rejected.
-        if(!mCallConnectivityManager.isConnectionSufficient(middlewareMessage)) {
-            if(mCallConnectivityManager.hasReachedMaxAttempts(middlewareMessage)) {
-                mCallRejectionAnalytics.rejectDueToPoorConnectivity(middlewareMessage, mCallConnectivityManager.getConnectivityHelper());
+        if(!mConnectivityChecker.isConnectionSufficient(middlewareMessage)) {
+            if(mConnectivityChecker.hasReachedMaxAttempts(middlewareMessage)) {
+                mCallRejectionAnalytics.rejectDueToPoorConnectivity(middlewareMessage, mConnectivityChecker.getConnectivityHelper());
                 return;
             }
             mRemoteLogger.e("Connection is insufficient. For now do nothing and wait for next middleware push");
