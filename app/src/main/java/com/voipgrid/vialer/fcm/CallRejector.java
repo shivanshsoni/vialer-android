@@ -84,7 +84,6 @@ public class CallRejector {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
 
-Log.e("TEST123", "Got response back from middleware: " + response.code());
             }
 
             @Override

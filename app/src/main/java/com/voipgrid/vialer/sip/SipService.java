@@ -317,7 +317,6 @@ public class SipService extends Service {
      * @param startActivity
      */
     public void makeCall(Uri number, String contactName, String phoneNumber, MiddlewareMessage middlewareMessage, boolean startActivity) {
-        Log.e("TEST123", "setting call middlewaremesage: "+ middlewareMessage);
         SipCall call = new SipCall(this, getSipConfig().getSipAccount());
         call.setPhoneNumberUri(number);
         call.setCallerId(contactName);
