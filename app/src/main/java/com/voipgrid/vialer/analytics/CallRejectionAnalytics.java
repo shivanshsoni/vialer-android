@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 
 import com.voipgrid.vialer.R;
 import com.voipgrid.vialer.VialerApplication;
-import com.voipgrid.vialer.analytics.AnalyticsHelper;
 import com.voipgrid.vialer.api.Registration;
 import com.voipgrid.vialer.api.ServiceGenerator;
 import com.voipgrid.vialer.logging.RemoteLogger;
