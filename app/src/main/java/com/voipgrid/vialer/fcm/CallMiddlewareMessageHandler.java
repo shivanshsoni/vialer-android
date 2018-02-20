@@ -67,6 +67,12 @@ public class CallMiddlewareMessageHandler {
         return SipService.sipServiceActive;
     }
 
+    /**
+     * Creates the intent and starts the SIP service, this will allow the app to receive
+     * SIP messaging and begin the incoming call.
+     *
+     * @param middlewareMessage Contains the information required by the SIP service.
+     */
     private void startSipServiceToAllowIncomingCall(MiddlewareMessage middlewareMessage) {
         mRemoteLogger.d("startSipServiceToAllowIncomingCall");
         Intent intent = new Intent(mContext, SipService.class);
