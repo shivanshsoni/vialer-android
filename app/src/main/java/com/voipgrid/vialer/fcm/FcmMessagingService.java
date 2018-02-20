@@ -5,6 +5,7 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.voipgrid.vialer.logging.LogHelper;
 import com.voipgrid.vialer.logging.RemoteLogger;
 import com.voipgrid.vialer.middleware.MiddlewareMessage;
+import com.voipgrid.vialer.middleware.handlers.MiddlewareCallMessageHandler;
 
 /**
  * Listen to messages from FCM. The backend server sends us FCM notifications when we have
@@ -13,13 +14,13 @@ import com.voipgrid.vialer.middleware.MiddlewareMessage;
 public class FcmMessagingService extends FirebaseMessagingService {
 
     private RemoteLogger mRemoteLogger;
-    private CallMiddlewareMessageHandler mCallMiddlewareMessageHandler;
+    private MiddlewareCallMessageHandler mMiddlewareCallMessageHandler;
 
     @Override
     public void onCreate() {
         super.onCreate();
         mRemoteLogger = new RemoteLogger(FcmMessagingService.class).enableConsoleLogging();
-        mCallMiddlewareMessageHandler = new CallMiddlewareMessageHandler(this);
+        mMiddlewareCallMessageHandler = new MiddlewareCallMessageHandler(this);
         mRemoteLogger.d("onCreate");
     }
 
@@ -37,7 +38,7 @@ public class FcmMessagingService extends FirebaseMessagingService {
         }
 
         if (middlewareMessage.isCall()) {
-            mCallMiddlewareMessageHandler.handle(middlewareMessage);
+            mMiddlewareCallMessageHandler.handle(middlewareMessage);
             return;
         }
 

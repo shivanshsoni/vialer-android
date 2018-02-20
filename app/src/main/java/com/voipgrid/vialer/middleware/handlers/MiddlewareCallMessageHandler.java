@@ -1,4 +1,4 @@
-package com.voipgrid.vialer.fcm;
+package com.voipgrid.vialer.middleware.handlers;
 
 import static com.voipgrid.vialer.middleware.MiddlewareMessage.Builder.MESSAGE_START_TIME;
 import static com.voipgrid.vialer.sip.SipService.EXTRA_MIDDLEWARE_MESSAGE;
@@ -17,14 +17,14 @@ import com.voipgrid.vialer.sip.SipUri;
 import com.voipgrid.vialer.util.ConnectivityChecker;
 import com.voipgrid.vialer.util.PhoneNumberUtils;
 
-public class CallMiddlewareMessageHandler {
+public class MiddlewareCallMessageHandler {
 
     private RemoteLogger mRemoteLogger;
     private Context mContext;
     private ConnectivityChecker mConnectivityChecker;
     private CallRejectionAnalytics mCallRejectionAnalytics;
 
-    public CallMiddlewareMessageHandler(Context context) {
+    public MiddlewareCallMessageHandler(Context context) {
         mRemoteLogger = new RemoteLogger(this.getClass()).enableConsoleLogging();
         mContext = context;
         mConnectivityChecker = new ConnectivityChecker(context);
