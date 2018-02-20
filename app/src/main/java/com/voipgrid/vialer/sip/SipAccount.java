@@ -1,5 +1,11 @@
 package com.voipgrid.vialer.sip;
 
+import static com.voipgrid.vialer.sip.SipService.EXTRA_MIDDLEWARE_MESSAGE;
+
+import android.util.Log;
+
+import com.voipgrid.vialer.fcm.MiddlewareMessage;
+
 import org.pjsip.pjsua2.AccountConfig;
 import org.pjsip.pjsua2.AccountInfo;
 import org.pjsip.pjsua2.OnIncomingCallParam;
@@ -38,6 +44,7 @@ class SipAccount extends org.pjsip.pjsua2.Account {
     public void onIncomingCall(OnIncomingCallParam incomingCallParam) {
         SipCall sipCall = new SipCall(mSipService, this, incomingCallParam.getCallId());
         sipCall.onCallIncoming();
+        sipCall.setMiddlewareMessage((MiddlewareMessage) mSipService.getIncomingCallDetails().getSerializableExtra(EXTRA_MIDDLEWARE_MESSAGE));
     }
 
     /**

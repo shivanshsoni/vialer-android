@@ -19,6 +19,7 @@ import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -32,6 +33,8 @@ import com.voipgrid.vialer.call.CallKeyPadFragment;
 import com.voipgrid.vialer.call.CallLockRingFragment;
 import com.voipgrid.vialer.call.CallTransferCompleteFragment;
 import com.voipgrid.vialer.call.CallTransferFragment;
+import com.voipgrid.vialer.fcm.CallRejector;
+import com.voipgrid.vialer.fcm.MiddlewareMessage;
 import com.voipgrid.vialer.logging.RemoteLogger;
 import com.voipgrid.vialer.media.BluetoothMediaButtonReceiver;
 import com.voipgrid.vialer.media.MediaManager;
@@ -1246,17 +1249,20 @@ public class CallActivity extends LoginRequiredActivity
         mMediaManager.stopIncomingCallRinger();
 
         if (mSipServiceBound) {
+            MiddlewareMessage middlewareMessage = null;
+
             try {
+                middlewareMessage = mSipService.getCurrentCall().getMiddlewareMessage();
                 mSipService.getCurrentCall().decline();
                 mSelfHangup = true;
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            mAnalyticsHelper.sendEvent(
-                    getString(R.string.analytics_event_category_call),
-                    getString(R.string.analytics_event_action_inbound),
-                    getString(R.string.analytics_event_label_declined)
-            );
+
+            if(middlewareMessage != null) {
+                new CallRejector(this).rejectDueToUserDeclining(middlewareMessage);
+            }
+
             finishWithDelay();
             sendBroadcast(new Intent(BluetoothMediaButtonReceiver.DECLINE_BTN));
         }

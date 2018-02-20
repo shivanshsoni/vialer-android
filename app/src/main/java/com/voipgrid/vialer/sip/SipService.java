@@ -12,12 +12,14 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.voipgrid.vialer.CallActivity;
 import com.voipgrid.vialer.Preferences;
 import com.voipgrid.vialer.api.models.PhoneAccount;
 import com.voipgrid.vialer.call.NativeCallManager;
 import com.voipgrid.vialer.dialer.ToneGenerator;
+import com.voipgrid.vialer.fcm.MiddlewareMessage;
 import com.voipgrid.vialer.logging.RemoteLogger;
 import com.voipgrid.vialer.util.JsonStorage;
 import com.voipgrid.vialer.util.NotificationHelper;
@@ -52,6 +54,8 @@ public class SipService extends Service {
     private int mCheckServiceUsedTimer = 10000;
     private Handler mCheckServiceHandler;
     private Runnable mCheckServiceRunnable;
+
+    public static final String EXTRA_MIDDLEWARE_MESSAGE = "middleware_message";
 
     private final BroadcastReceiver phoneStateReceiver = new BroadcastReceiver() {
         @Override
@@ -232,6 +236,7 @@ public class SipService extends Service {
 
         mInitialCallType = intent.getAction();
         Uri number = intent.getData();
+        MiddlewareMessage middlewareMessage = (MiddlewareMessage) intent.getSerializableExtra(EXTRA_MIDDLEWARE_MESSAGE);
 
         switch (mInitialCallType) {
             case SipConstants.ACTION_CALL_INCOMING:
@@ -244,6 +249,7 @@ public class SipService extends Service {
                         number,
                         intent.getStringExtra(SipConstants.EXTRA_CONTACT_NAME),
                         intent.getStringExtra(SipConstants.EXTRA_PHONE_NUMBER),
+                        null,
                         true
                 );
                 break;
@@ -300,7 +306,7 @@ public class SipService extends Service {
      * @param phoneNumber
      */
     public void makeCall(Uri number, String contactName, String phoneNumber) {
-       makeCall(number, contactName, phoneNumber, false);
+       makeCall(number, contactName, phoneNumber, null, false);
     }
 
     /**
@@ -310,12 +316,14 @@ public class SipService extends Service {
      * @param phoneNumber
      * @param startActivity
      */
-    public void makeCall(Uri number, String contactName, String phoneNumber, boolean startActivity) {
+    public void makeCall(Uri number, String contactName, String phoneNumber, MiddlewareMessage middlewareMessage, boolean startActivity) {
+        Log.e("TEST123", "setting call middlewaremesage: "+ middlewareMessage);
         SipCall call = new SipCall(this, getSipConfig().getSipAccount());
         call.setPhoneNumberUri(number);
         call.setCallerId(contactName);
         call.setPhoneNumber(phoneNumber);
         call.onCallOutgoing(number, startActivity);
+        call.setMiddlewareMessage(middlewareMessage);
     }
 
     /**

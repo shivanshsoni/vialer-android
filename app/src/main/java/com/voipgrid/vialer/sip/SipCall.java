@@ -9,6 +9,7 @@ import android.util.Log;
 import com.voipgrid.vialer.R;
 import com.voipgrid.vialer.analytics.AnalyticsApplication;
 import com.voipgrid.vialer.analytics.AnalyticsHelper;
+import com.voipgrid.vialer.fcm.MiddlewareMessage;
 import com.voipgrid.vialer.logging.LogHelper;
 import com.voipgrid.vialer.logging.RemoteLogger;
 import com.voipgrid.vialer.sip.SipConstants.CallMissedReason;
@@ -58,6 +59,7 @@ public class SipCall extends org.pjsip.pjsua2.Call {
     private String mIdentifier;
     private String mPhoneNumber;
     private String mCurrentCallState = SipConstants.CALL_INVALID_STATE;
+    private MiddlewareMessage mMiddlewareMessage;
     private boolean mIpChangeInProgress = false;
 
     @Override
@@ -518,5 +520,13 @@ public class SipCall extends org.pjsip.pjsua2.Call {
 
     boolean isIpChangeInProgress() {
         return mIpChangeInProgress;
+    }
+
+    public void setMiddlewareMessage(MiddlewareMessage middlewareMessage) {
+        mMiddlewareMessage = middlewareMessage;
+    }
+
+    public MiddlewareMessage getMiddlewareMessage() {
+        return mMiddlewareMessage;
     }
 }

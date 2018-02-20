@@ -3,7 +3,9 @@ package com.voipgrid.vialer.logging;
 import com.google.firebase.messaging.RemoteMessage;
 import com.voipgrid.vialer.R;
 import com.voipgrid.vialer.VialerApplication;
+import com.voipgrid.vialer.fcm.MiddlewareMessage;
 import com.voipgrid.vialer.sip.SipService;
+import com.voipgrid.vialer.util.ConnectivityHelper;
 
 public class LogHelper {
 
@@ -51,5 +53,12 @@ public class LogHelper {
                 VialerApplication.get().getString(R.string.push_log_entries_token),
                 "MessageID: " + remoteMessage.getMessageId() + " - UniqueKey: " + uniqueKey
         );
+    }
+
+    public void logCallHandling(boolean sipServiceActive, ConnectivityHelper connectivityHelper,
+            MiddlewareMessage middlewareMessage) {
+        mRemoteLogger.d("SipService Active: " + SipService.sipServiceActive);
+        mRemoteLogger.d("CurrentConnection: " + connectivityHelper.getConnectionTypeString());
+        mRemoteLogger.d("Payload: " + middlewareMessage.toString());
     }
 }

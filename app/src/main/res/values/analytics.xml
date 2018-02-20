@@ -44,6 +44,7 @@
     <string name="analytics_event_label_missed_call_answered_elsewhere" translatable="false">Missed - Call answered elsewhere</string>
     <string name="analytics_event_label_declined_insufficient_internet_connection" translatable="false">Declined - Insufficient internet connection</string>
     <string name="analytics_event_label_declined_availability_not_available" translatable="false">Declined - Availability is set to ‘Not available’</string>
+    <string name="analytics_event_label_declined_another_call_in_progress" translatable="false">Declined - Another call in progress</string>
 
     <string name="analytics_event_label_connect_a_b" translatable="false">ConnectAB</string>
     <string name="analytics_event_label_sip" translatable="false">SIP</string>

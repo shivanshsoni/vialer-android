@@ -1,6 +1,7 @@
 package com.voipgrid.vialer.sip;
 
 import static com.voipgrid.vialer.api.ServiceGenerator.getUserAgentHeader;
+import static com.voipgrid.vialer.fcm.MiddlewareMessage.Builder.MESSAGE_START_TIME;
 
 import static org.pjsip.pjsua2.pj_constants_.PJ_TRUE;
 import static org.pjsip.pjsua2.pjsua_call_flag.PJSUA_CALL_REINIT_MEDIA;
@@ -454,7 +455,7 @@ public class SipConfig implements AccountStatus {
         }
 
         String url = incomingCallDetails.getStringExtra(SipConstants.EXTRA_RESPONSE_URL);
-        String messageStartTime = incomingCallDetails.getStringExtra(FcmMessagingService.MESSAGE_START_TIME);
+        String messageStartTime = incomingCallDetails.getStringExtra(MESSAGE_START_TIME);
         String token = incomingCallDetails.getStringExtra(SipConstants.EXTRA_REQUEST_TOKEN);
 
         // Set responded as soon as possible to avoid duplicate requests due to multiple
