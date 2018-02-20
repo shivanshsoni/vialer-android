@@ -30,4 +30,8 @@ public interface Registration {
     Call<ResponseBody> register(@Field("name") String name, @Field("token") String token,
                     @Field("sip_user_id") String sipUserId, @Field("os_version") String osVersion,
                     @Field("client_version") String clientVersion, @Field("app") String app);
+
+    @FormUrlEncoded
+    @POST("api/hangup-reason/")
+    Call<ResponseBody> rejectReason(@Field("sip_user_id") String userId, @Field("unique_key") String token, @Field("reason") String reason);
 }
