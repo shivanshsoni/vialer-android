@@ -29,13 +29,13 @@ public class FcmMessagingService extends FirebaseMessagingService {
         super.onMessageReceived(remoteMessage);
 
         MiddlewareMessage middlewareMessage = MiddlewareMessage.Builder.fromRemoteMessage(remoteMessage);
-        Log.e("TEST123", "message:" + middlewareMessage);
+
+        LogHelper.using(mRemoteLogger).logMiddlewareMessageReceived(remoteMessage, middlewareMessage.getRequestToken());
+
         if(!middlewareMessage.hasRequestType()) {
             mRemoteLogger.e("No requestType");
             return;
         }
-
-        LogHelper.using(mRemoteLogger).logMiddlewareMessageReceived(remoteMessage, middlewareMessage.getRequestToken());
 
         if (middlewareMessage.isCall()) {
             mCallMiddlewareMessageHandler.handle(middlewareMessage);

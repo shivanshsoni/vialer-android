@@ -22,7 +22,7 @@ public class CallMiddlewareMessageHandler {
     private CallRejector mCallRejector;
 
     public CallMiddlewareMessageHandler(Context context) {
-        mRemoteLogger = new RemoteLogger(this.getClass());
+        mRemoteLogger = new RemoteLogger(this.getClass()).enableConsoleLogging();
         mContext = context;
         mCallConnectivityManager = new CallConnectivityManager(context);
         mCallRejector = new CallRejector(context);

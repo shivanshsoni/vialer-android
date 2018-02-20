@@ -30,7 +30,7 @@ public class CallConnectivityManager {
     private static final HashMap<String, Integer> attempts = new HashMap<>();
 
     public CallConnectivityManager(Context context) {
-        mRemoteLogger = new RemoteLogger(this.getClass());
+        mRemoteLogger = new RemoteLogger(this.getClass()).enableConsoleLogging();
         mConnectivityHelper = ConnectivityHelper.get(context);
         mContext = context;
     }
@@ -39,8 +39,7 @@ public class CallConnectivityManager {
      * Check if the current connection if sufficient to handle a call.
      */
     public boolean isConnectionSufficient(MiddlewareMessage message) {
-        boolean connectionSufficient =
-                mConnectivityHelper.hasNetworkConnection() && mConnectivityHelper.hasFastData();
+        boolean connectionSufficient = mConnectivityHelper.hasNetworkConnection() && mConnectivityHelper.hasFastData();
         // Device can ben in Idle mode when it's been idling to long. This means that network
         // connectivity
         // is reduced. So we check if we are in that mode and the connection is insufficient.

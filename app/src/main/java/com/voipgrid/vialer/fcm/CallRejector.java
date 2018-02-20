@@ -26,7 +26,7 @@ public class CallRejector {
     public CallRejector(Context context) {
         mContext = context;
         mAnalyticsHelper = new AnalyticsHelper(VialerApplication.get().getDefaultTracker());
-        mRemoteLogger = new RemoteLogger(this.getClass());
+        mRemoteLogger = new RemoteLogger(this.getClass()).enableConsoleLogging();
     }
 
     public void rejectForPoorConnectivity(MiddlewareMessage middlewareMessage, ConnectivityHelper connectivityHelper) {
