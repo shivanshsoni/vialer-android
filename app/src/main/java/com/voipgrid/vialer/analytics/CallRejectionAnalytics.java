@@ -1,4 +1,4 @@
-package com.voipgrid.vialer.fcm;
+package com.voipgrid.vialer.analytics;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -17,13 +17,13 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class CallRejector {
+public class CallRejectionAnalytics {
 
     private Context mContext;
     private AnalyticsHelper mAnalyticsHelper;
     private RemoteLogger mRemoteLogger;
 
-    public CallRejector(Context context) {
+    public CallRejectionAnalytics(Context context) {
         mContext = context;
         mAnalyticsHelper = new AnalyticsHelper(VialerApplication.get().getDefaultTracker());
         mRemoteLogger = new RemoteLogger(this.getClass()).enableConsoleLogging();

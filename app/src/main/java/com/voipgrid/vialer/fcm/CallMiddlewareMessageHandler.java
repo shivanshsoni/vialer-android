@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.voipgrid.vialer.analytics.CallRejectionAnalytics;
 import com.voipgrid.vialer.logging.LogHelper;
 import com.voipgrid.vialer.logging.RemoteLogger;
 import com.voipgrid.vialer.middleware.MiddlewareMessage;
@@ -20,13 +21,13 @@ public class CallMiddlewareMessageHandler {
     private RemoteLogger mRemoteLogger;
     private Context mContext;
     private CallConnectivityManager mCallConnectivityManager;
-    private CallRejector mCallRejector;
+    private CallRejectionAnalytics mCallRejectionAnalytics;
 
     public CallMiddlewareMessageHandler(Context context) {
         mRemoteLogger = new RemoteLogger(this.getClass()).enableConsoleLogging();
         mContext = context;
         mCallConnectivityManager = new CallConnectivityManager(context);
-        mCallRejector = new CallRejector(context);
+        mCallRejectionAnalytics = new CallRejectionAnalytics(context);
     }
 
     /**
@@ -42,7 +43,7 @@ public class CallMiddlewareMessageHandler {
         // attempts then the call will be rejected.
         if(!mCallConnectivityManager.isConnectionSufficient(middlewareMessage)) {
             if(mCallConnectivityManager.hasReachedMaxAttempts(middlewareMessage)) {
-                mCallRejector.rejectDueToPoorConnectivity(middlewareMessage, mCallConnectivityManager.getConnectivityHelper());
+                mCallRejectionAnalytics.rejectDueToPoorConnectivity(middlewareMessage, mCallConnectivityManager.getConnectivityHelper());
                 return;
             }
             mRemoteLogger.e("Connection is insufficient. For now do nothing and wait for next middleware push");
@@ -50,7 +51,7 @@ public class CallMiddlewareMessageHandler {
         }
 
         if (isCallAlreadyInProgress()) {
-            mCallRejector.rejectDueToCallAlreadyInProgress(middlewareMessage);
+            mCallRejectionAnalytics.rejectDueToCallAlreadyInProgress(middlewareMessage);
             return;
         }
 

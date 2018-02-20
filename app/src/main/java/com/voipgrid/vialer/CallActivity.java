@@ -32,7 +32,7 @@ import com.voipgrid.vialer.call.CallKeyPadFragment;
 import com.voipgrid.vialer.call.CallLockRingFragment;
 import com.voipgrid.vialer.call.CallTransferCompleteFragment;
 import com.voipgrid.vialer.call.CallTransferFragment;
-import com.voipgrid.vialer.fcm.CallRejector;
+import com.voipgrid.vialer.analytics.CallRejectionAnalytics;
 import com.voipgrid.vialer.middleware.MiddlewareMessage;
 import com.voipgrid.vialer.logging.RemoteLogger;
 import com.voipgrid.vialer.media.BluetoothMediaButtonReceiver;
@@ -1259,7 +1259,7 @@ public class CallActivity extends LoginRequiredActivity
             }
 
             if(middlewareMessage != null) {
-                new CallRejector(this).rejectDueToUserDeclining(middlewareMessage);
+                new CallRejectionAnalytics(this).rejectDueToUserDeclining(middlewareMessage);
             }
 
             finishWithDelay();
