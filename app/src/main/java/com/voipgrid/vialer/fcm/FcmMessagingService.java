@@ -1,7 +1,5 @@
 package com.voipgrid.vialer.fcm;
 
-import android.util.Log;
-
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.voipgrid.vialer.logging.LogHelper;
