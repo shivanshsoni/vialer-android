@@ -48,7 +48,7 @@ public class CallMiddlewareMessageHandler {
             return;
         }
 
-        if (isACallAlreadyInProgress()) {
+        if (isCallAlreadyInProgress()) {
             mCallRejector.rejectDueToCallAlreadyInProgress(middlewareMessage);
             return;
         }
@@ -63,7 +63,7 @@ public class CallMiddlewareMessageHandler {
      *
      * @return TRUE if there is a call already in progress.
      */
-    private boolean isACallAlreadyInProgress() {
+    private boolean isCallAlreadyInProgress() {
         return SipService.sipServiceActive;
     }
 
