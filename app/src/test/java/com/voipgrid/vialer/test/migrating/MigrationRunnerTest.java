@@ -26,8 +26,7 @@ public class MigrationRunnerTest  {
     @Mock Preferences mPreferences;
     @Mock RemoteLogger mRemoteLogger;
     @Mock VialerApplication mVialerApplication;
-    @Mock
-    MigrationFactory mMigrationFactory;
+    @Mock MigrationFactory mMigrationFactory;
 
     @Mock
     Migration migration;
