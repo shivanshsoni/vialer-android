@@ -180,7 +180,7 @@ class IncomingRinger {
     private void startVibrator() {
         mRemoteLogger.v("startVibrator()");
         if (mVibrator != null) {
-            mVibrator.vibrate(VIBRATOR_PATTERN, 0);
+//            mVibrator.vibrate(VIBRATOR_PATTERN, 0);
         }
     }
 

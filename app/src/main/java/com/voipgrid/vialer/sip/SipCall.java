@@ -26,6 +26,7 @@ import org.pjsip.pjsua2.OnCallMediaStateParam;
 import org.pjsip.pjsua2.OnCallStateParam;
 import org.pjsip.pjsua2.OnCallTsxStateParam;
 import org.pjsip.pjsua2.StreamInfo;
+import org.pjsip.pjsua2.StreamStat;
 import org.pjsip.pjsua2.TimeVal;
 import org.pjsip.pjsua2.pjmedia_type;
 import org.pjsip.pjsua2.pjsip_inv_state;
@@ -60,14 +61,15 @@ public class SipCall extends org.pjsip.pjsua2.Call {
     private String mCurrentCallState = SipConstants.CALL_INVALID_STATE;
     private boolean mIpChangeInProgress = false;
 
+
     @Override
     public void onCallTsxState(OnCallTsxStateParam prm) {
         super.onCallTsxState(prm);
-
-        // Check if the call is an ringing incoming call.
+         // Check if the call is an ringing incoming call.
         if (mCurrentCallState.equals(SipConstants.CALL_INCOMING_RINGING)) {
             // Early state. Is where a call is being cancelled or completed elsewhere.
             String packet = prm.getE().getBody().getTsxState().getSrc().getRdata().getWholeMsg();
+
             if (!packet.isEmpty()) {
                 CallMissedReason reason = CallMissedReason.UNKNOWN;
                 if (packet.contains(CallMissedReason.CALL_ORIGINATOR_CANCEL.toString())) {
@@ -431,12 +433,59 @@ public class SipCall extends org.pjsip.pjsua2.Call {
             onCallInvalidState(e);
         }
     }
+    private static final int INTERVAL = 2000;
+    private int iterations = 0;
 
     private void onCallConnected() {
         mRemoteLogger.d("onCallConnected");
         mCallIsConnected = true;
         mCurrentCallState = SipConstants.CALL_CONNECTED_MESSAGE;
         mSipBroadcaster.broadcastCallStatus(getIdentifier(), SipConstants.CALL_CONNECTED_MESSAGE);
+
+        new Thread(() -> {
+            while(mCallIsConnected) {
+                try {
+                    PacketStats mediaPacketStats = getMediaPacketStats();
+
+                    if (mediaPacketStats == null) break;
+
+                    int secondsIntoCall = INTERVAL * iterations;
+                    Log.e("TEST123", "Packet stats " + Math.floor(secondsIntoCall/1000) + "s into the call:" + getMediaPacketStats().toString());
+
+                    if (iterations % 10 == 0) {
+                        Log.e("TEST123", "There is are " + mediaPacketStats.getReceived() + " received packets and " + mediaPacketStats.getSent() + "  sent packets " + secondsIntoCall + "s into the call");
+                    }
+
+                    iterations++;
+
+                    Thread.sleep(INTERVAL);
+
+                } catch (Exception e) {
+                    Log.e("TEST123", "e", e);
+                    break;
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * Find the media packets sent/received for this call.
+     *
+     * @return
+     */
+    private PacketStats getMediaPacketStats()  {
+        try {
+            StreamStat streamStat = getStreamStat(getId());
+
+            if (streamStat == null) return null;
+
+            return new PacketStats(
+                    streamStat.getRtcp().getTxStat().getPkt(),
+                    streamStat.getRtcp().getRxStat().getPkt()
+            );
+        } catch (Throwable e) {
+            return null;
+        }
     }
 
     private void onCallDisconnected() {
