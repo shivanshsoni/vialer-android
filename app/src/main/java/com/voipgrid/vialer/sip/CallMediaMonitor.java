@@ -70,7 +70,7 @@ public class CallMediaMonitor implements Runnable {
         if (shouldTrackThesePacketStats()) {
             // If there has been no audio since our last interval this means that audio may have
             // dropped and we should send a reinvite.
-            if (mTrackedIntervalPacketStats != null && hasAudioSinceLastTrackedStats(packetStats)) {
+            if (mTrackedIntervalPacketStats != null && !hasAudioSinceLastTrackedStats(packetStats)) {
                 mRemoteLogger.w("There has been NO audio between "
                         + mTrackedIntervalPacketStats.getStatsCollectedAt() + "s and "
                         + packetStats.getStatsCollectedAt() + "s. Trying a reinvite");
@@ -93,9 +93,9 @@ public class CallMediaMonitor implements Runnable {
      * @return TRUE if there has been some audio (in either direction) since the last tracked stats.
      */
     private boolean hasAudioSinceLastTrackedStats(PacketStats currentPacketStats) {
-        return (currentPacketStats.getReceived() - mTrackedIntervalPacketStats.getReceived() <= 0)
+        return (currentPacketStats.getReceived() - mTrackedIntervalPacketStats.getReceived() > 0)
                 ||
-                (currentPacketStats.getSent() - mTrackedIntervalPacketStats.getSent()) <= 0;
+                (currentPacketStats.getSent() - mTrackedIntervalPacketStats.getSent()) > 0;
     }
 
     /**
