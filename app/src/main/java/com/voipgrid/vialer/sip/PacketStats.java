@@ -1,12 +1,28 @@
 package com.voipgrid.vialer.sip;
 
+import android.support.annotation.Nullable;
+
+import org.pjsip.pjsua2.StreamStat;
+
 public class PacketStats {
 
-    private long sent, received;
+    private final long mSent;
+    private final long mReceived;
+    private final int mStatsCollectedAt;
 
-    public PacketStats(long sent, long received) {
-        this.sent = sent;
-        this.received = received;
+    public PacketStats(long sent, long received, int statsCollectedAt) {
+        mSent = sent;
+        mReceived = received;
+        mStatsCollectedAt = statsCollectedAt;
+    }
+
+    /**
+     * Returns the duration of the sip call when these stats were collected.
+     *
+     * @return
+     */
+    public int getStatsCollectedAt() {
+        return mStatsCollectedAt;
     }
 
     /**
@@ -15,7 +31,7 @@ public class PacketStats {
      * @return The number of packets as a long
      */
     public long getSent() {
-        return sent;
+        return mSent;
     }
 
     /**
@@ -24,7 +40,16 @@ public class PacketStats {
      * @return The number of packets as a long
      */
     public long getReceived() {
-        return received;
+        return mReceived;
+    }
+
+    /**
+     * Check if there is some audio present at all.
+     *
+     * @return
+     */
+    public boolean hasAudio() {
+        return !isMissingInboundAudio() || !isNotSendingAudio();
     }
 
     /**
@@ -32,7 +57,7 @@ public class PacketStats {
      *
      * @return If any media has been sent or received TRUE, otherwise FALSE.
      */
-    public boolean hasAnyMediaBeenTransmittedForCall() {
+    public boolean isMissingAllAudio() {
         return isMissingInboundAudio() && isNotSendingAudio();
     }
 
@@ -67,8 +92,34 @@ public class PacketStats {
     @Override
     public String toString() {
         return "PacketStats{" +
-                "sent=" + sent +
-                ", received=" + received +
+                "mSent=" + mSent +
+                ", mReceived=" + mReceived +
+                ", mStatsCollectedAt=" + mStatsCollectedAt +
                 '}';
+    }
+
+    public static class Builder {
+
+        /**
+         * Builds a packet stats object from a sip call.
+         *
+         * @param sipCall
+         * @return The complete packet stats
+         */
+        public static @Nullable PacketStats fromSipCall(SipCall sipCall) {
+            try {
+                StreamStat streamStat = sipCall.getStreamStat(sipCall.getId());
+
+                if (streamStat == null) return null;
+
+                return new PacketStats(
+                        streamStat.getRtcp().getTxStat().getPkt(),
+                        streamStat.getRtcp().getRxStat().getPkt(),
+                        sipCall.getCallDuration()
+                );
+            } catch (Throwable e) {
+                return null;
+            }
+        }
     }
 }
