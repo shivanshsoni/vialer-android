@@ -12,6 +12,8 @@ import com.voipgrid.vialer.analytics.AnalyticsApplication;
 import com.voipgrid.vialer.analytics.AnalyticsHelper;
 import com.voipgrid.vialer.logging.LogHelper;
 import com.voipgrid.vialer.logging.RemoteLogger;
+import com.voipgrid.vialer.media.monitoring.CallMediaMonitor;
+import com.voipgrid.vialer.media.monitoring.PacketStats;
 import com.voipgrid.vialer.sip.SipConstants.CallMissedReason;
 import com.voipgrid.vialer.util.ConnectivityHelper;
 
@@ -446,7 +448,8 @@ public class SipCall extends org.pjsip.pjsua2.Call {
      *
      * @return
      */
-    public @Nullable PacketStats getMediaPacketStats()  {
+    public @Nullable
+    PacketStats getMediaPacketStats()  {
         return PacketStats.Builder.fromSipCall(this);
     }
 

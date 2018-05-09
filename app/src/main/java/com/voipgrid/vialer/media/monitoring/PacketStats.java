@@ -1,6 +1,8 @@
-package com.voipgrid.vialer.sip;
+package com.voipgrid.vialer.media.monitoring;
 
 import android.support.annotation.Nullable;
+
+import com.voipgrid.vialer.sip.SipCall;
 
 import org.pjsip.pjsua2.StreamStat;
 
@@ -8,12 +10,19 @@ public class PacketStats {
 
     private final long mSent;
     private final long mReceived;
-    private final int mStatsCollectedAt;
+    private final int mCollectionTime;
 
-    public PacketStats(long sent, long received, int statsCollectedAt) {
+    /**
+     * Create a new, immutable instance of PacketStats.
+     *
+     * @param sent The number of packets sent.
+     * @param received The number of packets received.
+     * @param collectionTime The time (relative to the call) when the stats were collected.
+     */
+    public PacketStats(long sent, long received, int collectionTime) {
         mSent = sent;
         mReceived = received;
-        mStatsCollectedAt = statsCollectedAt;
+        mCollectionTime = collectionTime;
     }
 
     /**
@@ -21,8 +30,8 @@ public class PacketStats {
      *
      * @return
      */
-    public int getStatsCollectedAt() {
-        return mStatsCollectedAt;
+    public int getCollectionTime() {
+        return mCollectionTime;
     }
 
     /**
@@ -67,7 +76,7 @@ public class PacketStats {
      *
      * @return If sent or received have not transmitted any packets.
      */
-    public boolean isOneOrMoreSidesLackingAudio() {
+    public boolean isEitherSideMissingAudio() {
         return isMissingInboundAudio() || isNotSendingAudio();
     }
 
@@ -89,12 +98,30 @@ public class PacketStats {
         return getSent() == 0;
     }
 
+    /**
+     * Get the difference between two PacketStats objects as a new PacketStats
+     * object.
+     *
+     * @return
+     */
+    public PacketStats difference(PacketStats previous) {
+        if (previous == null) {
+            return new PacketStats(0, 0,0);
+        }
+
+        return new PacketStats(
+                this.getSent() - previous.getSent(),
+                this.getReceived() - previous.getReceived(),
+                this.getCollectionTime()
+        );
+    }
+
     @Override
     public String toString() {
         return "PacketStats{" +
                 "mSent=" + mSent +
                 ", mReceived=" + mReceived +
-                ", mStatsCollectedAt=" + mStatsCollectedAt +
+                ", collectionTime=" + mCollectionTime +
                 '}';
     }
 

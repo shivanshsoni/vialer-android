@@ -1,11 +1,15 @@
-package com.voipgrid.vialer.sip;
-
-import android.util.Log;
+package com.voipgrid.vialer.media.monitoring;
 
 import com.voipgrid.vialer.logging.RemoteLogger;
+import com.voipgrid.vialer.sip.SipCall;
 
 import org.pjsip.pjsua2.CallOpParam;
 
+/**
+ * Responsible for analyzing the media packets sent/received during a call
+ * and reporting errors and/or re-sending invites to correct any problem
+ * that may have occurred.
+ */
 public class CallMediaMonitor implements Runnable {
 
     private final SipCall mSipCall;
@@ -16,27 +20,34 @@ public class CallMediaMonitor implements Runnable {
      * reinvites if the audio appears to have stopped during a
      * call.
      */
-    private PacketStats mTrackedIntervalPacketStats;
+    private PacketStats mLastTrackedStats;
 
     /**
-     * The delay between checking the packet stats in milliseconds.
+     * Records the packet stats when a reinvite was attempted so we can see
+     * if the reinvite has fixed the issue.
      */
-    private static final int CHECK_EVERY_MS = 1000;
+    private PacketStats mPacketStatsWhenAttemptingReinvite;
+
+    /**
+     * The delay between checking the packet stats in milliseconds. This should not be changed
+     * without updating the other timers.
+     */
+    private static final int QUERY_PACKET_STATS_INTERVAL_S = 1;
 
     /**
      * The frequency at which the current packet stats for a call should
      * be reported to the logger, this occurs when there is audio, in seconds. This
-     * will not cause stats to be reported any quicker than {@value CHECK_EVERY_MS}.
+     * will not cause stats to be reported any quicker than {@value QUERY_PACKET_STATS_INTERVAL_S}.
      */
-    private static final int REPORT_INTERVAL_IN_SECONDS = 10;
+    private static final int REPORT_PACKET_STATS_EVERY_S = 10;
 
     /**
      * A reinvite will be sent if there is no audio detected in this
      * interval.
      */
-    private static final int REINVITE_IF_NO_AUDIO_IN_SECONDS = 5;
+    private static final int CHECK_FOR_NO_AUDIO_IN_PREVIOUS_S = 5;
 
-    CallMediaMonitor(SipCall sipCall) {
+    public CallMediaMonitor(SipCall sipCall) {
         mSipCall = sipCall;
         mRemoteLogger = new RemoteLogger(this.getClass()).enableConsoleLogging();
     }
@@ -50,7 +61,7 @@ public class CallMediaMonitor implements Runnable {
 
             handleMediaPacketStats(packetStats);
 
-            sleep(CHECK_EVERY_MS);
+            sleep(QUERY_PACKET_STATS_INTERVAL_S * 1000);
         }
     }
 
@@ -59,52 +70,55 @@ public class CallMediaMonitor implements Runnable {
      * send a re-invite if there is no audio at all.
      */
     private void handleMediaPacketStats(PacketStats packetStats) {
-        // If all audio is missing from a call then send a reinvite
-        if (packetStats.isMissingAllAudio()) {
+        // If all audio is missing from a call then send a re-invite
+        if (packetStats.getCollectionTime() != 0 && packetStats.isEitherSideMissingAudio()) {
             mRemoteLogger.w("There is NO audio " + mSipCall.getCallDuration()
                     + " sec into the call. Trying a reinvite");
-            attemptCallReinvite();
+            attemptCallReinvite(packetStats);
             return;
         }
 
         if (shouldTrackThesePacketStats()) {
+            PacketStats packetStatsForLastInterval = packetStats.difference(mLastTrackedStats);
+
             // If there has been no audio since our last interval this means that audio may have
             // dropped and we should send a reinvite.
-            if (mTrackedIntervalPacketStats != null && !hasAudioSinceLastTrackedStats(packetStats)) {
+            if (mLastTrackedStats != null && packetStatsForLastInterval.isMissingAllAudio()) {
                 mRemoteLogger.w("There has been NO audio between "
-                        + mTrackedIntervalPacketStats.getStatsCollectedAt() + "s and "
-                        + packetStats.getStatsCollectedAt() + "s. Trying a reinvite");
-                attemptCallReinvite();
+                        + mLastTrackedStats.getCollectionTime() + "s and "
+                        + packetStats.getCollectionTime() + "s. Trying a reinvite");
+                attemptCallReinvite(packetStats);
             }
-            mTrackedIntervalPacketStats = packetStats;
+
+            mLastTrackedStats = packetStats;
+        }
+
+        // If we have previously attempted a reinvite, check if we have had any audio packets
+        // since the reinvite, this will tell us if the reinvite worked.
+        if (mPacketStatsWhenAttemptingReinvite != null) {
+            PacketStats packetStatsSinceLastInvite = packetStats.difference(mPacketStatsWhenAttemptingReinvite);
+            if (packetStatsSinceLastInvite.hasAudio()) {
+                mRemoteLogger.i(packetStatsSinceLastInvite.getReceived() + "rx, " + packetStatsSinceLastInvite.getSent() + "tx packets have been detected after reinvite between " + mPacketStatsWhenAttemptingReinvite.getCollectionTime() + "s " + packetStats.getCollectionTime() + "s");
+            }
+            mPacketStatsWhenAttemptingReinvite = null;
         }
 
         if (packetStats.hasAudio() && isTimeToReportAudioStats()) {
             mRemoteLogger.i(
-                    "There is audio in the last " + REPORT_INTERVAL_IN_SECONDS + " seconds rxPkt: "
+                    "There is audio in the last " + REPORT_PACKET_STATS_EVERY_S + " seconds rxPkt: "
                             + packetStats.getReceived() + " and txPkt: " + packetStats.getSent());
         }
     }
 
     /**
-     * Compare current packet stats with the last tracked stats to see if there has been any
-     * audio in this interval.
-     *
-     * @return TRUE if there has been some audio (in either direction) since the last tracked stats.
-     */
-    private boolean hasAudioSinceLastTrackedStats(PacketStats currentPacketStats) {
-        return (currentPacketStats.getReceived() - mTrackedIntervalPacketStats.getReceived() > 0)
-                ||
-                (currentPacketStats.getSent() - mTrackedIntervalPacketStats.getSent()) > 0;
-    }
-
-    /**
      * Attempts to send a reinvite for the call, if this fails then a message
      * is logged.
+     * @param packetStats
      */
-    private void attemptCallReinvite() {
+    private void attemptCallReinvite(PacketStats packetStats) {
         try {
             mSipCall.reinvite(new CallOpParam(true));
+            mPacketStatsWhenAttemptingReinvite = packetStats;
         } catch (Exception e) {
             mRemoteLogger.e("Unable to reinvite call: " + e.getMessage());
         }
@@ -117,25 +131,33 @@ public class CallMediaMonitor implements Runnable {
      * @return TRUE if stats should be reported, otherwise false.
      */
     private boolean shouldTrackThesePacketStats() {
-        if (mSipCall.getCallDuration() == 0) {
-            return false;
-        }
-
-        return (mSipCall.getCallDuration() % REINVITE_IF_NO_AUDIO_IN_SECONDS) == 0;
+        return intervalShouldBeTriggered(CHECK_FOR_NO_AUDIO_IN_PREVIOUS_S);
     }
 
     /**
      * Check the current call duration to determine if we should be reporting stats or not,
-     * it should be checked ever {@value REPORT_INTERVAL_IN_SECONDS} seconds.
+     * it should be checked ever {@value REPORT_PACKET_STATS_EVERY_S} seconds.
      *
      * @return TRUE if stats should be reported, otherwise false.
      */
     private boolean isTimeToReportAudioStats() {
+        return intervalShouldBeTriggered(REPORT_PACKET_STATS_EVERY_S);
+    }
+
+    /**
+     * Returns TRUE if the current interval should be triggered based on the call duration.
+     *
+     * For example, an interval of 5 seconds should be triggered on 5, 10, 15, 20, 25, 30 etc.
+     *
+     * @param interval The interval to check for
+     * @return TRUE if the interval is ready to be triggered
+     */
+    private boolean intervalShouldBeTriggered(int interval) {
         if (mSipCall.getCallDuration() == 0) {
             return false;
         }
 
-        return (mSipCall.getCallDuration() % REPORT_INTERVAL_IN_SECONDS) == 0;
+        return (mSipCall.getCallDuration() % interval) == 0;
     }
 
     /**
